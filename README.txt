@@ -4,3 +4,4 @@ then copy and paste the following command on cmd:
 pip install pymongo
 pip install PILLOW
 
+finally run RUETERS.cpython-39.pyc file
