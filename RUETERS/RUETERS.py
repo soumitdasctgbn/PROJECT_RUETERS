@@ -402,11 +402,6 @@ class Register:
             var19 = str(self.permanent_address_district_entry.get())
             var20 = str(self.present_address_entry.get())
             var21 = str(self.present_address_district_entry.get())
-
-            myclient = pymongo.MongoClient()
-            mydb = myclient["Users"]
-            mycol = mydb["users"]
-
             mydict = {"_id": var2,
                       "name": var1,
                       "email": EMAIL,
@@ -431,10 +426,17 @@ class Register:
                       "created_group": "",
                       "joined_group": ""
                       }
-            mycol.insert_one(mydict)
-            self.register_frame.destroy()
-            self.root.geometry("400x378")
-            Login(self.root)
+            try:
+                myclient = pymongo.MongoClient(database_path)
+                mydb = myclient["Users"]
+                mycol = mydb["users"]
+                mycol.insert_one(mydict)
+                self.register_frame.destroy()
+                self.root.geometry("400x378")
+                Login(self.root)
+            except Exception as e:
+                print(e)
+                messagebox.showinfo("Message","Email Already exist")
         else:
             self.conf_pass_entry.delete(0, 'end')
 
@@ -1164,8 +1166,6 @@ class Profile:
             self.following_class_frame.destroy()
 
     def search(self, search_join_frame_prev, src_entry):
-        search_join_frame = Frame(search_join_frame_prev)
-        search_join_frame.place(x=0, y=0, width=400, height=42)
         try:
             myclient = pymongo.MongoClient(database_path)
             mydb = myclient["CLASS"]
@@ -1173,17 +1173,21 @@ class Profile:
             self.search_data = ObjectId(src_entry.get())
             data = list(mycol.find({"_id": self.search_data}))
         except Exception as e:
-            print(e)
+
+            messagebox.showinfo("Message", "Invalid Class-ID")
+            return
         try:
             if data:
+                print("checked")
+                search_join_frame = Frame(search_join_frame_prev)
+                search_join_frame.place(x=0, y=0, width=400, height=42)
                 src_result_label = Label(search_join_frame, text=str(data[0]['_id']))
                 src_result_label.place(x=2, y=6, width=348, height=30)
                 src_result_btn = Button(search_join_frame, text="join", font=("Helvetica 9 italic", 8, "bold"),
                                         command=partial(self.join, search_join_frame, src_entry))
                 src_result_btn.place(x=352, y=6, width=46, height=30)
         except Exception as e:
-            print(e)
-            pass
+            messagebox.showinfo("Message", "Invalid Class-ID")
 
     def join(self, search_join_frame, src_entry):
 
@@ -1444,7 +1448,7 @@ class About:
 root = Tk()
 root.title("RUETERS")
 root.geometry("400x378")
-# root.wm_iconbitmap(os.path.dirname(os.path.realpath(sys.argv[0])) + "\icons" + '\RUETERS_ICON.ico')
+root.wm_iconbitmap(os.path.dirname(os.path.realpath(sys.argv[0])) + "\icons" + '\RUETERS_ICON.ico')
 root.resizable(0, 0)
 Login(root)
 root.mainloop()
