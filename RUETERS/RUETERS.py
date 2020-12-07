@@ -46,49 +46,6 @@ def identityDownloader(_id):
         mydoc = list(database("Users", "users", {"_id": str(i)}))
         setinfo(mydoc[0])
 
-
-def setinfo(LIST):
-    with open('membersData.csv', mode='a') as employee_file:
-        employee_writer = csv.writer(employee_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-
-        data = []
-        data = [LIST['name'],
-                LIST['email'],
-                LIST['phone_no'],
-                LIST['blood_group'],
-                LIST['religion'],
-                LIST['gender'],
-                LIST['university'],
-                LIST['dept'],
-                LIST['series'],
-                LIST['roll'],
-                LIST['section'],
-                LIST['college'],
-                LIST['college_city'],
-                LIST['school'],
-                LIST['school_city'],
-                LIST['permenent_address'],
-                LIST['permanent_address_district'],
-                LIST['present_address'],
-                LIST['present_address_district'],
-
-                ]
-
-        employee_writer.writerow(data)
-
-
-def getImage(filename):
-    try:
-        script_dir = os.path.dirname(__file__)  # <-- absolute dir the script is in
-        rel_path = "icons/" + str(filename)
-        abs_file_path = os.path.join(script_dir, rel_path)
-        img = ImageTk.PhotoImage(Image.open(abs_file_path))
-
-        return img
-    except Exception as ex:
-        print(ex)
-
-
 class LoginInfo:
     def setinfo(self, email, password):
         data = {}
