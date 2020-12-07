@@ -15,7 +15,7 @@ from bson.binary import Binary
 from bson.objectid import ObjectId
 from pymongo import MongoClient
 
-database_path="mongodb://118.179.65.135:27017/"
+database_path="mongodb://localhost:27017/"
 
 def database(db, col, thequery):
     try:
@@ -38,13 +38,24 @@ def database_update(db, col, myquery, newval):
     except Exception:
         return False
 
-
+def database_insert(db,col,data_dict):
+    try:
+        myclient = pymongo.MongoClient(database_path)
+        mydb = myclient[str(db)]
+        mycol = mydb[str(col)]
+        mycol.insert_one(data_dict)
+        return True        
+    except Exception:
+        return False
 def identityDownloader(_id):
     mydoc = list(database("CLASS", "class", {"admin": _id}))
     temp = mydoc[0]['members']
     for i in temp:
         mydoc = list(database("Users", "users", {"_id": str(i)}))
         setinfo(mydoc[0])
+
+
+
 
 class LoginInfo:
     def setinfo(self, email, password):
@@ -384,10 +395,7 @@ class Register:
                       "joined_group": ""
                       }
             try:
-                myclient = pymongo.MongoClient(database_path)
-                mydb = myclient["Users"]
-                mycol = mydb["users"]
-                mycol.insert_one(mydict)
+                database_insert("Users","users",mydict)
                 self.register_frame.destroy()
                 self.root.geometry("400x378")
                 Login(self.root)
@@ -529,14 +537,8 @@ class Class:
         _id = mycol.insert_one(mydict)
 
         # add the id of created class to admins record
-        myclient = pymongo.MongoClient(database_path)
-        mydb = myclient["Users"]
-        mycol = mydb["users"]
-        myquery = {"_id": EMAIL}
-        newvalues = {"$set": {"created_group": str(_id.inserted_id)}}
-        mycol.update_one(myquery, newvalues)
-        newvalues = {"$set": {"joined_group": str(_id.inserted_id)}}
-        mycol.update_one(myquery, newvalues)
+        database_update("Users", "users", {"_id": EMAIL}, {"$set": {"created_group": str(_id.inserted_id)}})
+        database_update("Users", "users", {"_id": EMAIL}, {"$set": {"joined_group": str(_id.inserted_id)}})
         self.class_frame.destroy()
         Profile(root)
 
@@ -1131,6 +1133,7 @@ class Profile:
             data = list(mycol.find({"_id": self.search_data}))
         except Exception as e:
             messagebox.showinfo("Message", "Invalid Class-ID")
+            return
         try:
             if data:
                 print("checked")
@@ -1140,11 +1143,16 @@ class Profile:
                 src_result_label.place(x=2, y=6, width=348, height=30)
                 src_result_btn = Button(search_join_frame, text="join", font=("Helvetica 9 italic", 8, "bold"),
                                         command=partial(self.join, search_join_frame, src_entry))
-                src_result_btn.place(x=352, y=6, width=46, height=30)
+                src_result_btn.place(x=352, y=6, width=46, height=15)
+                go_back_btn = Button(search_join_frame, text="go_back", font=("Helvetica 9 italic", 7, "bold"),
+                                        command=partial(self.go_back, search_join_frame, src_entry))
+                go_back_btn.place(x=352, y=22, width=46, height=14)
             else:
                 messagebox.showinfo("Message", "Invalid Class-ID")
+                return
         except Exception as e:
                 messagebox.showinfo("Message", "Invalid Class-ID")
+                return                    
 
     def join(self, search_join_frame, src_entry):
 
@@ -1178,7 +1186,9 @@ class Profile:
         ######################################################################################
         search_join_frame.destroy()
         src_entry.delete(0, 'end')
-
+    def go_back(self, search_join_frame, src_entry):
+        search_join_frame.destroy()
+        src_entry.delete(0, 'end')
     def createclass(self):
         Class(self.root)
 
